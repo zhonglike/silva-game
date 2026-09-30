@@ -136,18 +136,23 @@ function drawCompass() {
   const S = compassCv.width;
   const cx = S / 2, cy = S / 2, r = S / 2 - 6;
   ctx.clearRect(0, 0, S, S);
-  ctx.strokeStyle = 'rgba(210,230,220,0.5)';
+  // 深色底衬，保证在亮背景下也可读
+  ctx.fillStyle = 'rgba(6,12,10,0.55)';
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(220,240,230,0.85)';
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
 
   const yaw = controls.state.yaw;
   // 北（世界 -Z）
   let ang = yaw;
-  ctx.strokeStyle = '#e6f2ec';
+  ctx.strokeStyle = '#f2fff8';
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
   ctx.moveTo(cx + Math.sin(ang) * (r - 4), cy - Math.cos(ang) * (r - 4));
   ctx.lineTo(cx + Math.sin(ang) * (r - 13), cy - Math.cos(ang) * (r - 13));
   ctx.stroke();
+  ctx.lineWidth = 1.5;
 
   // 最近光之种子
   if (motes) {

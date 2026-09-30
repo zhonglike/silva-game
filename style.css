@@ -140,9 +140,10 @@ html, body {
   backdrop-filter: blur(2px); touch-action: none;
 }
 .tbtn:active { background: var(--accent); color: #07130d; }
-#btnFly { right: 108px; bottom: 130px; }
-#btnJump { right: 30px; bottom: 130px; }
-#btnSprint { right: 30px; bottom: 30px; }
+/* 触屏按钮列：位于罗盘左侧，避免遮挡 */
+#btnFly { right: 170px; bottom: 200px; }
+#btnJump { right: 170px; bottom: 128px; }
+#btnSprint { right: 170px; bottom: 56px; }
 
 #errMsg {
   position: fixed; left: 50%; top: 40%; transform: translateX(-50%);

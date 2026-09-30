@@ -106,7 +106,10 @@ export function createControls(camera, terrain, opts = {}) {
         const max = 52;
         if (len > max) { dx = dx / len * max; dy = dy / len * max; }
         joyKnob.style.transform = `translate(${dx - 23}px, ${dy - 23}px)`;
-        joyVec = { x: dx / max, y: dy / max };
+        const dead = 7; // 死区：避免手抖误动
+        if (len < dead) { joyVec = { x: 0, y: 0 }; continue; }
+        const k = 1 / (max - dead);
+        joyVec = { x: dx * k, y: dy * k };
       }
     }, { passive: false });
     const joyEnd = (e) => {
@@ -248,9 +251,9 @@ export function createControls(camera, terrain, opts = {}) {
     if (state.keys.has('left')) ix -= 1;
     if (state.keys.has('right')) ix += 1;
     if (joyActive) {
-      // 摇杆：屏幕 y 向下为前进（推上 = 前进）
+      // 摇杆：推上 = 前进（屏幕 y 向下为正，所以 joyVec.y 为负时前进）
       ix += joyVec.x;
-      iz -= joyVec.y;
+      iz += joyVec.y;
     }
     const ilen = Math.hypot(ix, iz);
     if (ilen > 1) { ix /= ilen; iz /= ilen; }
