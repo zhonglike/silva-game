@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>SILVA · 森语 — 程序化开放世界</title>
+<meta name="description" content="SILVA 森语：一款致敬 LAAS 的纯程序化 3D 开放世界探索游戏。山脉、森林、河流与湖泊全部由代码在浏览器中生成，支持手机与电脑，可步行、可飞行。" />
+<meta property="og:title" content="SILVA · 森语 — 程序化开放世界" />
+<meta property="og:description" content="全程序化 3D 开放世界：山谷溪流、针阔混交林、雪峰云海、昼夜循环。浏览器即玩。" />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 6 L58 46 H6 Z' fill='%235fae8f'/%3E%3Cpath d='M32 16 L49 42 H15 Z' fill='%232f4f33'/%3E%3Ccircle cx='32' cy='30' r='7' fill='%23e8f2ff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app"></div>
+
+<!-- 启动覆盖层 -->
+<div id="overlay">
+  <div class="panel">
+    <div class="title">S I L V A</div>
+    <div class="subtitle">森 语 · 程序化开放世界</div>
+    <div class="tagline">每一棵树、每一座山、每一条河 —— 都由代码在启动时生成。<br/>致敬 LAAS 的全程序化探索体验。</div>
+
+    <div class="row">
+      <label for="seedInput">世界种子</label>
+      <input id="seedInput" type="text" spellcheck="false" placeholder="随机" />
+      <button id="seedDice" class="btn ghost" title="随机种子">↻</button>
+    </div>
+    <div class="row">
+      <label for="qualitySelect">画质</label>
+      <select id="qualitySelect">
+        <option value="high">高（桌面推荐）</option>
+        <option value="med" selected>中（默认）</option>
+        <option value="low">低（手机/核显）</option>
+      </select>
+    </div>
+
+    <button id="startBtn" class="btn primary">进入世界</button>
+
+    <div class="controls-hint">
+      <b>操作</b>
+      <span>WASD 移动 · 鼠标 视角 · Shift 疾跑 · 空格 跳跃</span>
+      <span>V 飞行切换 · E/Q 飞行升降 · 滚轮 飞行速度 · F 电影镜头</span>
+      <span>1-9 观景台 · T 时间流逝 · +/- 时间流速 · M 静音</span>
+      <span class="mobile-hint">手机上：左侧摇杆移动 · 右侧拖动视角 · 双击跳跃</span>
+    </div>
+    <div class="goal">目标：找到并收集散落在山谷中的 <b>40</b> 颗光之种子</div>
+  </div>
+</div>
+
+<!-- 游戏内 HUD -->
+<div id="hud">
+  <div id="hudTop">
+    <div class="hud-chip" id="hudMotes">光之种子 0 / 40</div>
+    <div class="hud-chip" id="hudTime">08:00</div>
+    <div class="hud-chip" id="hudFps">-- fps</div>
+    <div class="hud-chip" id="hudMode">步行</div>
+  </div>
+  <canvas id="compass" width="96" height="96"></canvas>
+  <div id="hudMsg"></div>
+  <div id="hudHelp" class="hud-chip">P 设置 · H 帮助</div>
+</div>
+
+<!-- 帮助面板 -->
+<div id="helpPanel" class="slide-panel hidden">
+  <div class="panel">
+    <h2>操作说明</h2>
+    <table>
+      <tr><td>W A S D</td><td>移动（可搭配方向键）</td></tr>
+      <tr><td>鼠标拖动</td><td>视角（点击画面锁定）</td></tr>
+      <tr><td>Shift</td><td>疾跑</td></tr>
+      <tr><td>空格</td><td>跳跃</td></tr>
+      <tr><td>V</td><td>步行 / 飞行切换</td></tr>
+      <tr><td>E / Q</td><td>飞行模式上升 / 下降</td></tr>
+      <tr><td>滚轮</td><td>飞行速度</td></tr>
+      <tr><td>F</td><td>电影飞行镜头</td></tr>
+      <tr><td>1 - 9</td><td>九处观景台</td></tr>
+      <tr><td>T</td><td>切换昼夜（快进 4 小时）</td></tr>
+      <tr><td>+ / -</td><td>时间流速</td></tr>
+      <tr><td>P</td><td>设置面板</td></tr>
+      <tr><td>M</td><td>静音</td></tr>
+      <tr><td>R</td><td>回到出生点</td></tr>
+    </table>
+    <button id="helpClose" class="btn primary">知道了</button>
+  </div>
+</div>
+
+<!-- 设置面板 -->
+<div id="settingsPanel" class="slide-panel hidden">
+  <div class="panel">
+    <h2>设置</h2>
+    <div class="row"><label>世界种子</label><input id="setSeed" type="text" /><button id="setSeedApply" class="btn ghost">重新生成</button></div>
+    <div class="row"><label>时间</label><input id="timeSlider" type="range" min="0" max="24" step="0.25" value="9" /></div>
+    <div class="row"><label>时间流速</label><input id="speedSlider" type="range" min="0" max="10" step="0.5" value="1" /></div>
+    <div class="row"><label>画质</label><select id="setQuality">
+      <option value="high">高</option><option value="med" selected>中</option><option value="low">低</option>
+    </select><span class="note">（应用后重载页面）</span></div>
+    <div class="row"><label>音效</label><button id="muteBtn" class="btn ghost">静音</button></div>
+    <div class="row"><label>重置</label><button id="resetBtn" class="btn ghost">回到出生点</button></div>
+    <button id="settingsClose" class="btn primary">关闭</button>
+  </div>
+</div>
+
+<!-- 移动端触摸控件 -->
+<div id="touchUI" class="hidden">
+  <div id="joyBase"><div id="joyKnob"></div></div>
+  <div id="touchLook"></div>
+  <div id="btnFly" class="tbtn">飞</div>
+  <div id="btnJump" class="tbtn">跳</div>
+  <div id="btnSprint" class="tbtn">跑</div>
+</div>
+
+<div id="errMsg" class="hidden"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
